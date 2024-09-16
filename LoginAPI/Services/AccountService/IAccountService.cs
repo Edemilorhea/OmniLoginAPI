@@ -1,5 +1,4 @@
 using LoginAPI.Models;
-
 namespace LoginAPI.Services.AccountService;
 
 public interface IAccountService
