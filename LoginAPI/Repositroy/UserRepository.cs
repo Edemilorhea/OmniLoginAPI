@@ -37,7 +37,7 @@ public class UserRepository : IUserRepository
         return await _context.Users.ToListAsync();
     }
 
-    public async Task<User> GetByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         var result = await _context.Users.FindAsync(id);
         if (result != null)
@@ -56,16 +56,16 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<User> GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmailOrUserName(string Identifier)
     {
-        var result = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+        var result = await _context.Users.FirstOrDefaultAsync(x => x.Email == Identifier || x.UserName == Identifier);
         if (result != null)
         {
             return result;
         }
         else
         {
-            _logger.LogWarning($"User {email} not found");
+            _logger.LogWarning($"User {Identifier} not found");
             return null;
         }
     }

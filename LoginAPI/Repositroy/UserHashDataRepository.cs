@@ -1,10 +1,11 @@
 using LoginAPI.Database;
 using LoginAPI.Models;
+using LoginAPI.Repositroy;
 using Microsoft.EntityFrameworkCore;
 
 namespace LoginAPI.Repository;
 
-public class UserHashDataRepository : IRepository<UserHashData>
+public class UserHashDataRepository : IUserHashDataRepository
 {
     private readonly LoginContext _context;
 
@@ -37,7 +38,7 @@ public class UserHashDataRepository : IRepository<UserHashData>
         return await _context.UserHashData.ToListAsync();
     }
 
-    public async Task<UserHashData> GetByIdAsync(Guid id)
+    public async Task<UserHashData?> GetByIdAsync(Guid id)
     {
         var result = await _context.UserHashData.FindAsync(id);
         if (result != null)
@@ -47,7 +48,21 @@ public class UserHashDataRepository : IRepository<UserHashData>
         else
         {
             _logger.LogWarning($"UserHashData {id} not found");
-            throw new Exception("UserHashData not found");
+            return null;
+        }
+    }
+
+    public async Task<UserHashData?> GetByUserId(Guid userId)
+    {
+        var result = await _context.UserHashData.FirstOrDefaultAsync(x => x.UserId == userId);
+        if(result != null)
+        {
+            return result;
+        }
+        else
+        {
+            _logger.LogWarning($"UserHashData {userId} not found");
+            return null;
         }
     }
 
