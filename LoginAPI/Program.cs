@@ -2,6 +2,7 @@ using LoginAPI;
 using LoginAPI.Database;
 using LoginAPI.Models;
 using LoginAPI.Repository;
+using LoginAPI.Repositroy;
 using LoginAPI.Services.AccountService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<LoginContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IRepository<UserHashData>, UserHashDataRepository>();
+builder.Services.AddScoped<IUserHashDataRepository, UserHashDataRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 

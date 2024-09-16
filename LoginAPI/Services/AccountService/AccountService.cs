@@ -1,17 +1,19 @@
 using BCrypt.Net;
 using LoginAPI.Models;
+using LoginAPI.Models.Dtos.Account;
 using LoginAPI.Repository;
+using LoginAPI.Repositroy;
 
 namespace LoginAPI.Services.AccountService;
 
 public class AccountService : IAccountService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IRepository<UserHashData> _userHashDataRepository;
+    private readonly IUserHashDataRepository _userHashDataRepository;
 
     public AccountService(
         IUserRepository userRepository,
-        IRepository<UserHashData> userHashDataRepository
+        IUserHashDataRepository userHashDataRepository
     )
     {
         _userRepository = userRepository;
@@ -32,12 +34,32 @@ public class AccountService : IAccountService
             Data = result,
             Message = "User found"
         };
-
     }
 
-    public Task<User> Login(User user)
+    public async Task<ServiceResponse<User>> Login(LoginDto user)
     {
-        throw new NotImplementedException();
+        var dBUserData = await _userRepository.GetUserByEmailOrUserName(user.Identifier);
+        
+        if(dBUserData == null)
+        {
+            return new ServiceResponse<User>
+            {
+                StatusCode = 404,
+                Data = null,
+                Message = "User not found"
+            };
+        }
+
+        var result = BCrypt.Net.BCrypt.Verify(
+            user.Password,
+            dBUserData.Password);
+
+        return new ServiceResponse<User>
+        {
+            StatusCode = 200,
+            Data = result ? dBUserData : null,
+            Message = result ? "Login Sussess" : "Login failed"
+        };
     }
 
     public Task<User> Logout(User user)
@@ -56,6 +78,9 @@ public class AccountService : IAccountService
             new UserHashData { UserId = user.UserId, Salt = userSalt }
         );
 
+        // TODO: 接下來新增JWT Token 
+
+
         return new ServiceResponse<User>
         {
             StatusCode = 200,
@@ -64,13 +89,9 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ServiceResponse<User>> ValidateUser(User user)
+    public async Task<ServiceResponse<User>> ValidateUser(string Identifier)
     {
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        var result = await _userRepository.GetUserByEmail(user.Email);
+        var result = await _userRepository.GetUserByEmailOrUserName(Identifier);
         if (result != null)
         {
             return new ServiceResponse<User>

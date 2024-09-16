@@ -1,4 +1,5 @@
 using LoginAPI.Models;
+using LoginAPI.Models.Dtos.Account;
 using LoginAPI.Services.AccountService;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ public class AccountController : ControllerBase
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
 
-        var isExist =await _accountService.ValidateUser(request); 
+        var isExist =await _accountService.ValidateUser(request.Email); 
         if( isExist.Data != null)
         {
             return Conflict("User already exist");
@@ -50,9 +51,19 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<string>> Login([FromBody]User request) 
+    public async Task<ActionResult<string>> Login([FromBody]LoginDto request) 
     {
-        throw new NotImplementedException();
+        if(!ModelState.IsValid) return BadRequest(ModelState);
+
+        var isExist = await _accountService.ValidateUser(request.Identifier);
+
+        if(isExist.Data ==null){
+            return NotFound("User not found");
+        }
+        var response = await _accountService.Login(request);
+
+        return Ok(response);
+
     }
 
     [HttpPost]
