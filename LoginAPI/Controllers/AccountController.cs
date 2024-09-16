@@ -21,6 +21,15 @@ public class AccountController : ControllerBase
         return Ok("LoginAPI is running");
     }
 
+    [HttpGet]
+    public async Task<ActionResult<User>> GetUserInfo(Guid id)
+    {
+        var result = await _accountService.GetUserInfo(id);
+        return Ok(result);
+    }
+
+
+
     [HttpPost]
     public async Task<ActionResult<string>> Register([FromBody]User request)
     {
@@ -32,8 +41,12 @@ public class AccountController : ControllerBase
             return Conflict("User already exist");
         }
 
-        var result = await _accountService.RegisterUser(request);
-        return Ok(result);
+        await _accountService.RegisterUser(request);
+
+        var response = new { UserName = request.UserName, Email = request.Email};
+
+        var locationuri = Url.Action("GetUserInfo", "Account", new { id = request.UserId });
+        return Created(locationuri, response);
     }
 
     [HttpPost]

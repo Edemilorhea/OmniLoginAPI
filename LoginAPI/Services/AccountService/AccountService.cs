@@ -23,12 +23,24 @@ public class AccountService : IAccountService
         throw new NotImplementedException();
     }
 
-    public Task<User> LoginUser(User user)
+    public async Task<ServiceResponse<User>> GetUserInfo(Guid id)
+    {
+        var result = await _userRepository.GetByIdAsync(id);
+        return new ServiceResponse<User>
+        {
+            StatusCode = 200,
+            Data = result,
+            Message = "User found"
+        };
+
+    }
+
+    public Task<User> Login(User user)
     {
         throw new NotImplementedException();
     }
 
-    public Task<User> LogoutUser(User user)
+    public Task<User> Logout(User user)
     {
         throw new NotImplementedException();
     }
