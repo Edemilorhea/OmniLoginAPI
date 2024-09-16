@@ -1,11 +1,12 @@
 using LoginAPI.Database;
 using LoginAPI.Models;
+using LoginAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace LoginAPI.Repositroy;
+namespace LoginAPI.Repository;
 
-public class UserRepository : IRepository<User>
+public class UserRepository : IUserRepository
 {
     private readonly LoginContext _context;
     private readonly ILogger<UserRepository> _logger;
@@ -22,7 +23,7 @@ public class UserRepository : IRepository<User>
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task DeleteAsync(Guid id)
     {
         var user =await _context.Users.FindAsync(id);
         if(user != null){
@@ -36,7 +37,7 @@ public class UserRepository : IRepository<User>
         return await _context.Users.ToListAsync();
     }
 
-    public async Task<User> GetByIdAsync(string id)
+    public async Task<User> GetByIdAsync(Guid id)
     {
         var result = await _context.Users.FindAsync(id);
         if (result != null)
@@ -55,4 +56,17 @@ public class UserRepository : IRepository<User>
         await _context.SaveChangesAsync();
     }
 
+    public async Task<User> GetUserByEmail(string email)
+    {
+        var result = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+        if (result != null)
+        {
+            return result;
+        }
+        else
+        {
+            _logger.LogWarning($"User {email} not found");
+            return null;
+        }
+    }
 }

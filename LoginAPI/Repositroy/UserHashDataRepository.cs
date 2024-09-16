@@ -2,7 +2,7 @@ using LoginAPI.Database;
 using LoginAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LoginAPI.Repositroy;
+namespace LoginAPI.Repository;
 
 public class UserHashDataRepository : IRepository<UserHashData>
 {
@@ -22,7 +22,7 @@ public class UserHashDataRepository : IRepository<UserHashData>
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task DeleteAsync(Guid id)
     {
         var userHashData = await _context.UserHashData.FindAsync(id);
         if (userHashData != null)
@@ -37,7 +37,7 @@ public class UserHashDataRepository : IRepository<UserHashData>
         return await _context.UserHashData.ToListAsync();
     }
 
-    public async Task<UserHashData> GetByIdAsync(string id)
+    public async Task<UserHashData> GetByIdAsync(Guid id)
     {
         var result = await _context.UserHashData.FindAsync(id);
         if (result != null)
