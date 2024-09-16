@@ -1,6 +1,8 @@
 using LoginAPI.Models;
+using LoginAPI.Services.AccountService;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LoginAPI.Controllers;
 
@@ -8,8 +10,13 @@ namespace LoginAPI.Controllers;
 [Route("[controller]/[action]")]
 public class AccountController : ControllerBase
 {
+    private readonly IAccountService _accountService;
+    public AccountController(IAccountService accountService)
+    {
+        _accountService = accountService;
+    }
     [HttpGet]
-    public async Task<ActionResult<string>> Health()
+    public ActionResult<string> Health()
     {
         return Ok("LoginAPI is running");
     }
@@ -17,7 +24,16 @@ public class AccountController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<string>> Register([FromBody]User request)
     {
-        throw new NotImplementedException();
+        if(!ModelState.IsValid) return BadRequest(ModelState);
+
+        var isExist =await _accountService.ValidateUser(request); 
+        if( isExist.Data != null)
+        {
+            return Conflict("User already exist");
+        }
+
+        var result = await _accountService.RegisterUser(request);
+        return Ok(result);
     }
 
     [HttpPost]
