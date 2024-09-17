@@ -8,4 +8,6 @@ public class LoginDto
     public required string Identifier  { get; set; } // Username or Email
     [Required]
     public required string Password { get; set; }
+    public string? JwtToken { get; set; }
 }
+

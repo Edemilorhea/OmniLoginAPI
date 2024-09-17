@@ -2,7 +2,7 @@ using BCrypt.Net;
 using LoginAPI.Models;
 using LoginAPI.Models.Dtos.Account;
 using LoginAPI.Repository;
-using LoginAPI.Repositroy;
+using LoginAPI.Services.AuthenticationService;
 
 namespace LoginAPI.Services.AccountService;
 
@@ -10,14 +10,18 @@ public class AccountService : IAccountService
 {
     private readonly IUserRepository _userRepository;
     private readonly IUserHashDataRepository _userHashDataRepository;
+    private readonly IJWTService _jwtService;
+
 
     public AccountService(
         IUserRepository userRepository,
-        IUserHashDataRepository userHashDataRepository
+        IUserHashDataRepository userHashDataRepository,
+        IJWTService jwtService
     )
     {
         _userRepository = userRepository;
         _userHashDataRepository = userHashDataRepository;
+        _jwtService = jwtService;
     }
 
     public Task<User> ChangePassword(User user)
@@ -36,13 +40,13 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ServiceResponse<User>> Login(LoginDto user)
+    public async Task<ServiceResponse<LoginDto>> Login(LoginDto user)
     {
         var dBUserData = await _userRepository.GetUserByEmailOrUserName(user.Identifier);
         
         if(dBUserData == null)
         {
-            return new ServiceResponse<User>
+            return new ServiceResponse<LoginDto>
             {
                 StatusCode = 404,
                 Data = null,
@@ -54,11 +58,15 @@ public class AccountService : IAccountService
             user.Password,
             dBUserData.Password);
 
-        return new ServiceResponse<User>
+
+        // TODO: 接下來新增JWT Token 
+        user.JwtToken = _jwtService.GenerateToken(dBUserData.UserId.ToString());
+
+        return new ServiceResponse<LoginDto>
         {
             StatusCode = 200,
-            Data = result ? dBUserData : null,
-            Message = result ? "Login Sussess" : "Login failed"
+            Data = user,
+            Message = result ? "Login Sucess & Jwt Access" : "Login failed"
         };
     }
 
@@ -77,8 +85,6 @@ public class AccountService : IAccountService
 
             new UserHashData { UserId = user.UserId, Salt = userSalt }
         );
-
-        // TODO: 接下來新增JWT Token 
 
 
         return new ServiceResponse<User>

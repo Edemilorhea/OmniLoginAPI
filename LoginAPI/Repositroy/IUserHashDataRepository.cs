@@ -2,7 +2,7 @@ using LoginAPI.Migrations;
 using LoginAPI.Models;
 using LoginAPI.Repository;
 
-namespace LoginAPI.Repositroy;
+namespace LoginAPI.Repository;
 
 public interface IUserHashDataRepository : IRepository<UserHashData>
 {

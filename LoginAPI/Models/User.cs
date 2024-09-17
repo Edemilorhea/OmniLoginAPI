@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LoginAPI.Models;
 
-public partial class User
+public partial class User 
 {
     public Guid UserId { get; set; }
     [Required]

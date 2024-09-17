@@ -1,6 +1,6 @@
 using LoginAPI.Database;
 using LoginAPI.Models;
-using LoginAPI.Repositroy;
+using LoginAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace LoginAPI.Repository;
