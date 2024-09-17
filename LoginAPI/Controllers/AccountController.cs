@@ -2,9 +2,7 @@ using LoginAPI.Models;
 using LoginAPI.Models.Dtos.Account;
 using LoginAPI.Services.AccountService;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LoginAPI.Controllers;
 
@@ -84,9 +82,19 @@ public class AccountController : ControllerBase
         throw new NotImplementedException();
     }
 
+    [Authorize]
     [HttpPost]
-    public async Task<ActionResult<string>> Logout([FromBody] User request)
+    public async Task<ActionResult<string>> Logout([FromBody] LogoutDto request)
     {
-        throw new NotImplementedException();
+        if(!ModelState.IsValid) return BadRequest(ModelState);
+
+        if(request.JwtToken == null){
+            Request.Headers.TryGetValue("Authorization", out var jwtToken);
+            request.JwtToken = request.JwtToken ?? jwtToken;
+        }
+
+        var response = await _accountService.Logout(request);
+
+        return Ok(response);
     }
 }

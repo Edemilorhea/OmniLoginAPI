@@ -2,13 +2,9 @@ using System.Security.Cryptography;
 using System.Text;
 using LoginAPI;
 using LoginAPI.Database;
-using LoginAPI.Models;
-using LoginAPI.Repository;
-using LoginAPI.Services.AccountService;
-using LoginAPI.Services.AuthenticationService;
+using LoginAPI.MiddleWare;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,10 +21,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-
-Console.WriteLine(jwtSettings["securityKey"]);
-Console.WriteLine(jwtSettings["Issuer"]);
-Console.WriteLine(jwtSettings["Audience"]);
 
 
 # region JWT
@@ -60,6 +52,7 @@ builder.Services.AddScoped<IUserHashDataRepository, UserHashDataRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IJWTService, JWTService>();
+builder.Services.AddScoped<IJWTBlackListRepository, JWTBlackListRepository>();
 
 builder.Services.AddAuthorization();
 
@@ -72,9 +65,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
 app.UseHttpsRedirection();
 
+app.UseMiddleware<JWTMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 

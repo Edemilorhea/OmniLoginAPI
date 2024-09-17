@@ -11,6 +11,7 @@ namespace LoginAPI.Database
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserHashData> UserHashData { get; set; }
+        public DbSet<JWTBlackList> JWTBlackList { get; set; }
     }
     
     
