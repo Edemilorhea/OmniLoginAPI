@@ -1,12 +1,6 @@
-using BCrypt.Net;
-using LoginAPI.Models;
-using LoginAPI.Models.Dtos.Account;
-using LoginAPI.Repository;
-using LoginAPI.Services.AuthenticationService;
-
 namespace LoginAPI.Services.AccountService;
 
-public class AccountService : IAccountService
+public partial class AccountService : IAccountService
 {
     private readonly IUserRepository _userRepository;
     private readonly IUserHashDataRepository _userHashDataRepository;
@@ -70,9 +64,16 @@ public class AccountService : IAccountService
         };
     }
 
-    public Task<User> Logout(User user)
+    public async Task<ServiceResponse<bool>> Logout(LogoutDto request)
     {
-        throw new NotImplementedException();
+        await _jwtService.AddToken2BlackList(request);
+
+        return new ServiceResponse<bool>
+        {
+            StatusCode = 200,
+            Data = true,
+            Message = "Logout success"
+        };
     }
 
     public async Task<ServiceResponse<User>> RegisterUser(User user)
