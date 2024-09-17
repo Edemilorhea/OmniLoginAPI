@@ -17,7 +17,7 @@ public class AccountController : ControllerBase
     {
         _accountService = accountService;
     }
-    [HttpGet]
+    [HttpGet("/health")]
     public ActionResult<string> Health()
     {
         return Ok("LoginAPI is running");
@@ -38,7 +38,7 @@ public class AccountController : ControllerBase
     }
 
 
-    [HttpPost]
+    [HttpPost("/register")]
     public async Task<ActionResult<string>> Register([FromBody] User request)
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
@@ -57,7 +57,7 @@ public class AccountController : ControllerBase
         return Created(locationuri, response);
     }
 
-    [HttpPost]
+    [HttpPost("/login")]
     public async Task<ActionResult<string>> Login([FromBody] LoginDto request) 
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
@@ -78,7 +78,7 @@ public class AccountController : ControllerBase
 
     }
 
-    [HttpPost]
+    [HttpPost("/change-password")]
     public async Task<ActionResult<string>> ChangePassword([FromBody] User request)
     {
         throw new NotImplementedException();
