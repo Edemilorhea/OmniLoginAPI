@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using LoginAPI.Models;
 using LoginAPI.Models.Dtos.Account;
 using LoginAPI.Services.AccountService;
@@ -76,10 +78,23 @@ public class AccountController : ControllerBase
 
     }
 
+    [Authorize]
     [HttpPost("/change-password")]
-    public async Task<ActionResult<string>> ChangePassword([FromBody] User request)
+    public async Task<ActionResult<string>> ChangePassword([FromBody] ChangePasswordDto requestData)
     {
-        throw new NotImplementedException();
+        if(!ModelState.IsValid) return BadRequest(ModelState);
+
+        if(requestData.JWTToken == null){
+            Request.Headers.TryGetValue("Authorization", out var jwtToken);
+            requestData.JWTToken = jwtToken.ToString().Replace("Bearer ", "");
+        }
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if(userId == null) return NotFound("User not found");
+
+        var response = await _accountService.ChangePassword(requestData, userId);
+        return Ok(response);
     }
 
     [Authorize]

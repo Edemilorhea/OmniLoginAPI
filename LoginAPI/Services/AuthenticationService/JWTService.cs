@@ -73,7 +73,7 @@ public class JWTService : IJWTService
 
         var claims = new []{
             new Claim(JwtRegisteredClaimNames.Sub, userId),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //NOTE: JWT ID可以用這個做逾期黑名單
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),//NOTE: JWT ID可以用這個做逾期黑名單
         };
 
         var token = new JwtSecurityToken(
@@ -109,4 +109,60 @@ public class JWTService : IJWTService
     
     }
 
+    public async Task<ServiceResponse<bool>> validateToken(string token)
+    {
+        if(string.IsNullOrEmpty(token) && token.Contains("Bearer ")){
+            token = token.Replace("Bearer ", "");
+        }
+
+        var existingToken  = await _JWTBlackListRepository.GetByToken(token);
+
+        if(!string.IsNullOrEmpty(existingToken)){
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 401,
+                Data = false,
+                Message = "Token is blacklisted"
+            };
+        }
+
+        var jwtSettings =  _configuration.GetSection("JwtSettings");
+
+        byte[] keyHash;
+
+        using (var sha256 = SHA256.Create()){
+            keyHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(jwtSettings["securityKey"]!));
+        }
+
+        var JwtHandler = new JwtSecurityTokenHandler();
+
+        try{
+            JwtHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _configuration["JwtSettings:Issuer"],
+                ValidAudience = _configuration["JwtSettings:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(keyHash)
+            }, out _);
+
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 200,
+                Data = true,
+                Message = "Token is valid"
+            };
+        }
+        catch(Exception e){
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 401,
+                Data = false,
+                Message = e.Message
+            };
+        }
+
+    }
 }

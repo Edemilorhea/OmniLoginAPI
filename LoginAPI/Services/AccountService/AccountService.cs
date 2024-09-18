@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 namespace LoginAPI.Services.AccountService;
 
 public partial class AccountService : IAccountService
@@ -18,9 +20,74 @@ public partial class AccountService : IAccountService
         _jwtService = jwtService;
     }
 
-    public Task<User> ChangePassword(User user)
+    public async Task<ServiceResponse<bool>> ChangePassword(ChangePasswordDto requestData, string userId)
     {
-        throw new NotImplementedException();
+        ServiceResponse<bool> tokenValidationResult = await _jwtService.validateToken(requestData.JWTToken!);
+
+        if(tokenValidationResult.StatusCode != 200 && tokenValidationResult.Data == false){
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 401,
+                Data = false,
+                Message = "Invalid Token"
+            };
+        }
+        
+        if (!Guid.TryParse(userId, out var parsedUserGuid))
+        {
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 404,
+                Data = false,
+                Message = "Not correct guid format"
+            };
+        
+        }
+        var user = await _userRepository.GetByIdAsync(parsedUserGuid);
+
+        if (user == null)
+        {
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 404,
+                Data = false,
+                Message = "User not found"
+            };
+        }
+
+        if(Bcrypt.Verify(requestData.OldPassword, user.Password) != true){
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 401,
+                Data = false,
+                Message = "Old password is not correct"
+            };
+        }
+
+        var hashNewPassword = Bcrypt.HashPassword(requestData.NewPassword);
+
+        user.Password = hashNewPassword;
+
+        try
+        {
+            await _userRepository.UpdateAsync(user);
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 200,
+                Data = true,
+                Message = "Password changed"
+            };
+        }
+        catch (Exception e)
+        {
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 500,
+                Data = false,
+                Message = e.Message
+            };
+        }
+
     }
 
     public async Task<ServiceResponse<User>> GetUserInfo(Guid id)
@@ -48,7 +115,7 @@ public partial class AccountService : IAccountService
             };
         }
 
-        var result = BCrypt.Net.BCrypt.Verify(
+        var result = Bcrypt.Verify(
             user.Password,
             dBUserData.Password);
 
@@ -78,8 +145,8 @@ public partial class AccountService : IAccountService
 
     public async Task<ServiceResponse<User>> RegisterUser(User user)
     {
-        string userSalt = BCrypt.Net.BCrypt.GenerateSalt(10);
-        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password, userSalt);
+        string userSalt = Bcrypt.GenerateSalt(10);
+        user.Password = Bcrypt.HashPassword(user.Password, userSalt);
 
         await _userRepository.AddAsync(user);
         await _userHashDataRepository.AddAsync(
