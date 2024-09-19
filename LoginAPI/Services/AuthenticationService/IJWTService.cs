@@ -9,7 +9,7 @@ public interface IJWTService
 
     public Task<ServiceResponse<bool>> validateToken(string token);
 
-    public Task<ServiceResponse<bool>> AddToken2BlackList(LogoutDto data);
+    public Task<ServiceResponse<bool>> AddToken2BlackList(LogoutDto token);
 
     public Task<ServiceResponse<bool>> CheckTokenInBlackList(string token);
 }

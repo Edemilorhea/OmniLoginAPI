@@ -103,7 +103,7 @@ public class AccountController : ControllerBase
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
 
-        if(request.JwtToken == null){
+        if(string.IsNullOrEmpty(request.JwtToken)){
             Request.Headers.TryGetValue("Authorization", out var jwtToken);
             request.JwtToken = request.JwtToken ?? jwtToken;
         }
