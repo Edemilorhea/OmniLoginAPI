@@ -74,7 +74,7 @@ public class AccountController : ControllerBase
 
         Response.Headers.Append("Authorization", $"Bearer {response.Data.JwtToken}");
 
-        return Ok(response);
+        return Ok(response.Data);
 
     }
 
@@ -98,7 +98,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost]
+    [HttpPost("/logout")]
     public async Task<ActionResult<string>> Logout([FromBody] LogoutDto request)
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);

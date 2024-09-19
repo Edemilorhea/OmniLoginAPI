@@ -133,7 +133,16 @@ public partial class AccountService : IAccountService
 
     public async Task<ServiceResponse<bool>> Logout(LogoutDto request)
     {
-        await _jwtService.AddToken2BlackList(request);
+        var result= await _jwtService.AddToken2BlackList(request);
+
+        if(result.StatusCode != 200 && result.Data == false){
+            return new ServiceResponse<bool>
+            {
+                StatusCode = 404,
+                Data = true,
+                Message = "User not found"
+            };
+        }
 
         return new ServiceResponse<bool>
         {

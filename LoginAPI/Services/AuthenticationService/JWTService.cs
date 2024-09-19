@@ -21,9 +21,15 @@ public class JWTService : IJWTService
         _userRepository = userRepository;
     }
 
-    public async Task<ServiceResponse<bool>> AddToken2BlackList(LogoutDto data)
+    public async Task<ServiceResponse<bool>> AddToken2BlackList(LogoutDto requestData)
     {
-        var user = await _userRepository.GetUserByEmailOrUserName(data.Identifier);
+
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(requestData.JwtToken!);
+
+        token.Payload.TryGetValue("sub", out var userId);
+
+        var user = await _userRepository.GetByIdAsync(Guid.Parse(userId.ToString()!));
 
         if (user == null){
             return new ServiceResponse<bool>
@@ -34,18 +40,16 @@ public class JWTService : IJWTService
             };
         }
 
-        if(data.JwtToken!.Contains("Bearer ")){
-            data.JwtToken = data.JwtToken.Replace("Bearer ", "");
+        if(requestData.JwtToken.Contains("Bearer ")){
+            requestData.JwtToken = requestData.JwtToken.Replace("Bearer ", "");
         }
 
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(data.JwtToken!);
         var ExpireTime = token.ValidTo;
 
         await _JWTBlackListRepository.AddAsync(new JWTBlackList
         {
             UserId = user.UserId,
-            Token = data.JwtToken!,
+            Token = requestData.JwtToken!,
             ExpireTime = ExpireTime,
             CreateTime = DateTime.Now
         });
@@ -74,6 +78,7 @@ public class JWTService : IJWTService
         var claims = new []{
             new Claim(JwtRegisteredClaimNames.Sub, userId),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),//NOTE: JWT ID可以用這個做逾期黑名單
+            new Claim(ClaimTypes.Role, "Omni")
         };
 
         var token = new JwtSecurityToken(
