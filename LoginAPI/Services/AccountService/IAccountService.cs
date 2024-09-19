@@ -9,6 +9,6 @@ public interface IAccountService
     Task<ServiceResponse<User>> RegisterUser(User user);
     Task<ServiceResponse<LoginDto>> Login(LoginDto user);
     Task<ServiceResponse<bool>> ChangePassword(ChangePasswordDto requestData, string userId);
-    Task<ServiceResponse<bool>> Logout(LogoutDto user);
+    Task<ServiceResponse<bool>> Logout(string user);
     Task<ServiceResponse<User>> GetUserInfo(Guid id);
 }

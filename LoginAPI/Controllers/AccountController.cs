@@ -74,7 +74,7 @@ public class AccountController : ControllerBase
 
         Response.Headers.Append("Authorization", $"Bearer {response.Data.JwtToken}");
 
-        return Ok(response);
+        return Ok(response.Data);
 
     }
 
@@ -98,17 +98,17 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost]
-    public async Task<ActionResult<string>> Logout([FromBody] LogoutDto request)
+    [HttpPost("/logout")]
+    public async Task<ActionResult<string>> Logout([FromBody] string tokenParameter)
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
 
-        if(request.JwtToken == null){
+        if(string.IsNullOrEmpty(tokenParameter)){
             Request.Headers.TryGetValue("Authorization", out var jwtToken);
-            request.JwtToken = request.JwtToken ?? jwtToken;
+            tokenParameter = tokenParameter ?? jwtToken;
         }
 
-        var response = await _accountService.Logout(request);
+        var response = await _accountService.Logout(tokenParameter);
 
         return Ok(response);
     }

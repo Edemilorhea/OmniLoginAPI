@@ -131,9 +131,9 @@ public partial class AccountService : IAccountService
         };
     }
 
-    public async Task<ServiceResponse<bool>> Logout(LogoutDto request)
+    public async Task<ServiceResponse<bool>> Logout(string tokenParameter)
     {
-        await _jwtService.AddToken2BlackList(request);
+        await _jwtService.AddToken2BlackList(tokenParameter);
 
         return new ServiceResponse<bool>
         {
