@@ -25,7 +25,12 @@ public class JWTService : IJWTService
     {
 
         var handler = new JwtSecurityTokenHandler();
+        if(requestData.JwtToken.Contains("Bearer ")){
+            requestData.JwtToken = requestData.JwtToken.Replace("Bearer ", "");
+        }
         var token = handler.ReadJwtToken(requestData.JwtToken!);
+
+
 
         token.Payload.TryGetValue("sub", out var userId);
 
@@ -40,9 +45,6 @@ public class JWTService : IJWTService
             };
         }
 
-        if(requestData.JwtToken.Contains("Bearer ")){
-            requestData.JwtToken = requestData.JwtToken.Replace("Bearer ", "");
-        }
 
         var ExpireTime = token.ValidTo;
 
